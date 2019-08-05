@@ -1,5 +1,7 @@
 package cn.hutool.core.lang;
 
+import java.io.Serializable;
+
 import cn.hutool.core.date.SystemClock;
 import cn.hutool.core.util.StrUtil;
 
@@ -25,39 +27,8 @@ import cn.hutool.core.util.StrUtil;
  * @author Looly
  * @since 3.0.1
  */
-public class Snowflake {
-
-	// ----------------------------------------------------------------------------------------------------------- Static method start
-	/**
-	 * 根据Snowflake的ID，获取机器id
-	 *
-	 * @param id snowflake算法生成的id
-	 * @return 所属机器的id
-	 */
-	public long getWorkerId(long id) {
-		return id >> workerIdShift & ~(-1L << workerIdBits);
-	}
-
-	/**
-	 * 根据Snowflake的ID，获取数据中心id
-	 *
-	 * @param id snowflake算法生成的id
-	 * @return 所属数据中心
-	 */
-	public long getDataCenterId(long id) {
-		return id >> datacenterIdShift & ~(-1L << datacenterIdBits);
-	}
-
-	/**
-	 *根据Snowflake的ID，获取生成时间
-	 *
-	 * @param id snowflake算法生成的id
-	 * @return 生成的时间
-	 */
-	public long getGenerateDateTime(long id) {
-		return (id >> timestampLeftShift & ~(-1L << 41L)) + twepoch;
-	}
-	// ----------------------------------------------------------------------------------------------------------- Static method end
+public class Snowflake implements Serializable{
+	private static final long serialVersionUID = 1L;
 
 	// Thu, 04 Nov 2010 01:42:54 GMT
 	private final long twepoch = 1288834974657L;
@@ -111,6 +82,36 @@ public class Snowflake {
 		this.datacenterId = datacenterId;
 		this.useSystemClock = isUseSystemClock;
 	}
+	
+	/**
+	 * 根据Snowflake的ID，获取机器id
+	 *
+	 * @param id snowflake算法生成的id
+	 * @return 所属机器的id
+	 */
+	public long getWorkerId(long id) {
+		return id >> workerIdShift & ~(-1L << workerIdBits);
+	}
+
+	/**
+	 * 根据Snowflake的ID，获取数据中心id
+	 *
+	 * @param id snowflake算法生成的id
+	 * @return 所属数据中心
+	 */
+	public long getDataCenterId(long id) {
+		return id >> datacenterIdShift & ~(-1L << datacenterIdBits);
+	}
+
+	/**
+	 *根据Snowflake的ID，获取生成时间
+	 *
+	 * @param id snowflake算法生成的id
+	 * @return 生成的时间
+	 */
+	public long getGenerateDateTime(long id) {
+		return (id >> timestampLeftShift & ~(-1L << 41L)) + twepoch;
+	}
 
 	/**
 	 * 下一个ID
@@ -135,6 +136,15 @@ public class Snowflake {
 		lastTimestamp = timestamp;
 
 		return ((timestamp - twepoch) << timestampLeftShift) | (datacenterId << datacenterIdShift) | (workerId << workerIdShift) | sequence;
+	}
+	
+	/**
+	 * 下一个ID（字符串形式）
+	 *
+	 * @return ID 字符串形式
+	 */
+	public String nextIdStr() {
+		return Long.toString(nextId());
 	}
 
 	// ------------------------------------------------------------------------------------------------------------------------------------ Private method start

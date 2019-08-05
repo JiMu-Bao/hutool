@@ -48,8 +48,10 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
 
 /**
- * 集合相关工具类<p>
- * 此工具方法针对{@link Collection}及其实现类封装的工具。<p>
+ * 集合相关工具类
+ * <p>
+ * 此工具方法针对{@link Collection}及其实现类封装的工具。
+ * <p>
  * 由于{@link Collection} 实现了{@link Iterable}接口，因此部分工具此类不提供，而是在{@link IterUtil} 中提供
  * 
  * @author xiaoleilu
@@ -202,7 +204,7 @@ public class CollUtil {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * 判断指定集合是否包含指定值，如果集合为空（null或者空），返回{@code false}，否则找到元素返回{@code true}
 	 * 
@@ -242,6 +244,27 @@ public class CollUtil {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * 集合1中是否包含集合2中所有的元素，既集合2是否为集合1的子集
+	 * 
+	 * @param coll1 集合1
+	 * @param coll2 集合2
+	 * @return 集合1中是否包含集合2中所有的元素
+	 * @since 4.5.12
+	 */
+	public static boolean containsAll(Collection<?> coll1, Collection<?> coll2) {
+		if (isEmpty(coll1) || isEmpty(coll2) || coll1.size() < coll2.size()) {
+			return false;
+		}
+		
+		for (Object object : coll2) {
+			if (false == coll1.contains(object)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -400,7 +423,7 @@ public class CollUtil {
 	public static <T> HashSet<T> newHashSet(T... ts) {
 		return newHashSet(false, ts);
 	}
-	
+
 	/**
 	 * 新建一个LinkedHashSet
 	 * 
@@ -411,7 +434,7 @@ public class CollUtil {
 	 */
 	@SafeVarargs
 	public static <T> LinkedHashSet<T> newLinkedHashSet(T... ts) {
-		return (LinkedHashSet<T>)newHashSet(true, ts);
+		return (LinkedHashSet<T>) newHashSet(true, ts);
 	}
 
 	/**
@@ -825,8 +848,12 @@ public class CollUtil {
 	 * @since 4.0.6
 	 */
 	public static <T> List<T> sub(List<T> list, int start, int end, int step) {
-		if (list == null || list.isEmpty()) {
+		if (list == null) {
 			return null;
+		}
+		
+		if(list.isEmpty()) {
+			return new ArrayList<>(0); 
 		}
 
 		final int size = list.size();
@@ -932,10 +959,10 @@ public class CollUtil {
 	 * @return 过滤后的集合
 	 */
 	public static <T> Collection<T> filter(Collection<T> collection, Editor<T> editor) {
-		if(null == collection || null == editor) {
+		if (null == collection || null == editor) {
 			return collection;
 		}
-		
+
 		Collection<T> collection2 = ObjectUtil.clone(collection);
 		try {
 			collection2.clear();
@@ -970,10 +997,10 @@ public class CollUtil {
 	 * @since 4.1.8
 	 */
 	public static <T> List<T> filter(List<T> list, Editor<T> editor) {
-		if(null == list || null == editor) {
+		if (null == list || null == editor) {
 			return list;
 		}
-		
+
 		final List<T> list2 = (list instanceof LinkedList) ? new LinkedList<T>() : new ArrayList<T>(list.size());
 		T modified;
 		for (T t : list) {
@@ -1000,10 +1027,10 @@ public class CollUtil {
 	 * @since 3.1.0
 	 */
 	public static <T> Collection<T> filter(Collection<T> collection, Filter<T> filter) {
-		if(null == collection || null == filter) {
+		if (null == collection || null == filter) {
 			return collection;
 		}
-		
+
 		Collection<T> collection2 = ObjectUtil.clone(collection);
 		try {
 			collection2.clear();
@@ -1035,7 +1062,7 @@ public class CollUtil {
 	 * @since 4.1.8
 	 */
 	public static <T> List<T> filter(List<T> list, Filter<T> filter) {
-		if(null == list || null == filter) {
+		if (null == list || null == filter) {
 			return list;
 		}
 		final List<T> list2 = (list instanceof LinkedList) ? new LinkedList<T>() : new ArrayList<T>(list.size());
@@ -1119,9 +1146,28 @@ public class CollUtil {
 	 * @return 抽取后的新列表
 	 */
 	public static List<Object> extract(Iterable<?> collection, Editor<Object> editor) {
+		return extract(collection, editor, false);
+	}
+
+	/**
+	 * 通过Editor抽取集合元素中的某些值返回为新列表<br>
+	 * 例如提供的是一个Bean列表，通过Editor接口实现获取某个字段值，返回这个字段值组成的新列表
+	 * 
+	 * @param collection 原集合
+	 * @param editor 编辑器
+	 * @param ignoreNull 是否忽略空值
+	 * @return 抽取后的新列表
+	 * @since 4.5.7
+	 */
+	public static List<Object> extract(Iterable<?> collection, Editor<Object> editor, boolean ignoreNull) {
 		final List<Object> fieldValueList = new ArrayList<>();
+		Object value;
 		for (Object bean : collection) {
-			fieldValueList.add(editor.edit(bean));
+			value = editor.edit(bean);
+			if (null == value && ignoreNull) {
+				continue;
+			}
+			fieldValueList.add(value);
 		}
 		return fieldValueList;
 	}
@@ -1136,6 +1182,20 @@ public class CollUtil {
 	 * @since 3.1.0
 	 */
 	public static List<Object> getFieldValues(Iterable<?> collection, final String fieldName) {
+		return getFieldValues(collection, fieldName, false);
+	}
+
+	/**
+	 * 获取给定Bean列表中指定字段名对应字段值的列表<br>
+	 * 列表元素支持Bean与Map
+	 * 
+	 * @param collection Bean集合或Map集合
+	 * @param fieldName 字段名或map的键
+	 * @param ignoreNull 是否忽略值为{@code null}的字段
+	 * @return 字段值列表
+	 * @since 4.5.7
+	 */
+	public static List<Object> getFieldValues(Iterable<?> collection, final String fieldName, boolean ignoreNull) {
 		return extract(collection, new Editor<Object>() {
 			@Override
 			public Object edit(Object bean) {
@@ -1145,7 +1205,23 @@ public class CollUtil {
 					return ReflectUtil.getFieldValue(bean, fieldName);
 				}
 			}
-		});
+		}, ignoreNull);
+	}
+
+	/**
+	 * 获取给定Bean列表中指定字段名对应字段值的列表<br>
+	 * 列表元素支持Bean与Map
+	 * 
+	 * @param <T> 元素类型
+	 * @param collection Bean集合或Map集合
+	 * @param fieldName 字段名或map的键
+	 * @param elementType 元素类型类
+	 * @return 字段值列表
+	 * @since 4.5.6
+	 */
+	public static <T> List<T> getFieldValues(Iterable<?> collection, final String fieldName, final Class<T> elementType) {
+		List<Object> fieldValues = getFieldValues(collection, fieldName);
+		return Convert.toList(elementType, fieldValues);
 	}
 
 	/**
@@ -1658,15 +1734,8 @@ public class CollUtil {
 		if (TypeUtil.isUnknow(elementType)) {
 			// 元素类型为空时，使用Object类型来接纳所有类型
 			elementType = Object.class;
-		} else {
-			final Class<?> elementRowType = TypeUtil.getClass(elementType);
-			if (null != elementRowType && (elementRowType.isInstance(value) && false == Iterable.class.isAssignableFrom(elementRowType))) {
-				// 其它类型按照单一元素处理
-				collection.add((T) value);
-				return collection;
-			}
 		}
-		
+
 		Iterator iter;
 		if (value instanceof Iterator) {
 			iter = (Iterator) value;
@@ -1676,14 +1745,14 @@ public class CollUtil {
 			iter = new EnumerationIter<>((Enumeration) value);
 		} else if (ArrayUtil.isArray(value)) {
 			iter = new ArrayIter<>(value);
-		} else if(value instanceof CharSequence){
-			//String按照逗号分隔的列表对待
-			iter = StrUtil.splitTrim((CharSequence)value, CharUtil.COMMA).iterator();
-		}else {
-			//其它类型按照单一元素处理
+		} else if (value instanceof CharSequence) {
+			// String按照逗号分隔的列表对待
+			iter = StrUtil.splitTrim((CharSequence) value, CharUtil.COMMA).iterator();
+		} else {
+			// 其它类型按照单一元素处理
 			iter = CollUtil.newArrayList(value).iterator();
 		}
-		
+
 		final ConverterRegistry convert = ConverterRegistry.getInstance();
 		while (iter.hasNext()) {
 			collection.add((T) convert.convert(elementType, iter.next()));
@@ -1784,29 +1853,33 @@ public class CollUtil {
 	 * @since 4.0.6
 	 */
 	public static <T> T get(Collection<T> collection, int index) {
-		if(null == collection) {
+		if (null == collection) {
+			return null;
+		}
+
+		final int size = collection.size();
+		if(0 == size) {
 			return null;
 		}
 		
-		final int size = collection.size();
 		if (index < 0) {
 			index += size;
 		}
 		
-		//检查越界
-		if(index >= size) {
+		// 检查越界
+		if (index >= size) {
 			return null;
 		}
-		
+
 		if (collection instanceof List) {
 			final List<T> list = ((List<T>) collection);
 			return list.get(index);
 		} else {
 			int i = 0;
-			for(T t : collection) {
-				if(i > index) {
+			for (T t : collection) {
+				if (i > index) {
 					break;
-				}else if(i == index) {
+				} else if (i == index) {
 					return t;
 				}
 				i++;
@@ -1873,7 +1946,7 @@ public class CollUtil {
 	public static <T> T getFirst(Iterator<T> iterator) {
 		return IterUtil.getFirst(iterator);
 	}
-	
+
 	/**
 	 * 获取集合的最后一个元素
 	 * 
@@ -1982,13 +2055,13 @@ public class CollUtil {
 		for (Collection<T> coll : colls) {
 			list.addAll(coll);
 		}
-		if(null != comparator) {
+		if (null != comparator) {
 			Collections.sort(list, comparator);
 		}
-		
+
 		return page(pageNo, pageSize, list);
 	}
-	
+
 	/**
 	 * 对指定List分页取值
 	 * 
@@ -2000,14 +2073,14 @@ public class CollUtil {
 	 * @since 4.1.20
 	 */
 	public static <T> List<T> page(int pageNo, int pageSize, List<T> list) {
-		if(isEmpty(list)) {
-			return new ArrayList<>(0); 
+		if (isEmpty(list)) {
+			return new ArrayList<>(0);
 		}
-		
+
 		int resultSize = list.size();
 		// 每页条目数大于总数直接返回所有
 		if (resultSize <= pageSize) {
-			if(pageNo <=1) {
+			if (pageNo <= 1) {
 				return Collections.unmodifiableList(list);
 			} else {
 				// 越界直接返回空
@@ -2340,6 +2413,43 @@ public class CollUtil {
 			list.add(element);
 		}
 		return list;
+	}
+	
+	/**
+	 * 获取指定Map列表中所有的Key
+	 * 
+	 * @param <K> 键类型
+	 * @param mapCollection Map列表
+	 * @return key集合
+	 * @since 4.5.12
+	 */
+	public static <K> Set<K> keySet(Collection<Map<K, ?>> mapCollection){
+		if(isEmpty(mapCollection)) {
+			return new HashSet<>();
+		}
+		final HashSet<K> set = new HashSet<>(mapCollection.size() * 16);
+		for (Map<K,?> map : mapCollection) {
+			set.addAll(map.keySet());
+		}
+		
+		return set;
+	}
+	
+	/**
+	 * 获取指定Map列表中所有的Value
+	 * 
+	 * @param <V> 值类型
+	 * @param mapCollection Map列表
+	 * @return Value集合
+	 * @since 4.5.12
+	 */
+	public static <V> List<V> values(Collection<Map<?, V>> mapCollection){
+		final List<V> values = new ArrayList<>();
+		for (Map<?, V> map : mapCollection) {
+			values.addAll(map.values());
+		}
+		
+		return values;
 	}
 
 	// ---------------------------------------------------------------------------------------------- Interface start

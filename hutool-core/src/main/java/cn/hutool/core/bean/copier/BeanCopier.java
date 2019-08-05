@@ -1,6 +1,8 @@
 package cn.hutool.core.bean.copier;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.Collection;
@@ -14,8 +16,10 @@ import cn.hutool.core.bean.copier.provider.MapValueProvider;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.exceptions.UtilException;
+import cn.hutool.core.lang.ParameterizedTypeImpl;
 import cn.hutool.core.lang.copier.Copier;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
@@ -28,10 +32,16 @@ import cn.hutool.core.util.TypeUtil;
  * @param <T> 目标对象类型
  * @since 3.2.3
  */
-public class BeanCopier<T> implements Copier<T> {
-
+public class BeanCopier<T> implements Copier<T>, Serializable {
+	private static final long serialVersionUID = 1L;
+	
+	/** 源对象 */
 	private Object source;
+	/** 目标对象 */
 	private T dest;
+	/** 目标的类型（用于泛型类注入） */
+	private Type destType;
+	/** 拷贝选项 */
 	private CopyOptions copyOptions;
 
 	/**
@@ -44,7 +54,21 @@ public class BeanCopier<T> implements Copier<T> {
 	 * @return BeanCopier
 	 */
 	public static <T> BeanCopier<T> create(Object source, T dest, CopyOptions copyOptions) {
-		return new BeanCopier<>(source, dest, copyOptions);
+		return create(source, dest, dest.getClass(), copyOptions);
+	}
+
+	/**
+	 * 创建BeanCopier
+	 * 
+	 * @param <T> 目标Bean类型
+	 * @param source 来源对象，可以是Bean或者Map
+	 * @param dest 目标Bean对象
+	 * @param destType 目标的泛型类型，用于标注有泛型参数的Bean对象
+	 * @param copyOptions 拷贝属性选项
+	 * @return BeanCopier
+	 */
+	public static <T> BeanCopier<T> create(Object source, T dest, Type destType, CopyOptions copyOptions) {
+		return new BeanCopier<>(source, dest, destType, copyOptions);
 	}
 
 	/**
@@ -52,11 +76,13 @@ public class BeanCopier<T> implements Copier<T> {
 	 * 
 	 * @param source 来源对象，可以是Bean或者Map
 	 * @param dest 目标Bean对象
+	 * @param destType 目标的泛型类型，用于标注有泛型参数的Bean对象
 	 * @param copyOptions 拷贝属性选项
 	 */
-	public BeanCopier(Object source, T dest, CopyOptions copyOptions) {
+	public BeanCopier(Object source, T dest, Type destType, CopyOptions copyOptions) {
 		this.source = source;
 		this.dest = dest;
+		this.destType = destType;
 		this.copyOptions = copyOptions;
 	}
 
@@ -65,17 +91,17 @@ public class BeanCopier<T> implements Copier<T> {
 	public T copy() {
 		if (null != this.source) {
 			if (this.source instanceof ValueProvider) {
-				//目标只支持Bean
+				// 目标只支持Bean
 				valueProviderToBean((ValueProvider<String>) this.source, this.dest);
 			} else if (this.source instanceof Map) {
-				if(this.dest instanceof Map) {
-					mapToMap((Map<?, ?>)this.source, (Map<?, ?>)this.dest);
+				if (this.dest instanceof Map) {
+					mapToMap((Map<?, ?>) this.source, (Map<?, ?>) this.dest);
 				} else {
 					mapToBean((Map<?, ?>) this.source, this.dest);
 				}
 			} else {
-				if(this.dest instanceof Map) {
-					beanToMap(this.source, (Map<?, ?>)this.dest);
+				if (this.dest instanceof Map) {
+					beanToMap(this.source, (Map<?, ?>) this.dest);
 				} else {
 					beanToBean(this.source, this.dest);
 				}
@@ -103,25 +129,25 @@ public class BeanCopier<T> implements Copier<T> {
 	private void mapToBean(Map<?, ?> map, Object bean) {
 		valueProviderToBean(new MapValueProvider(map, this.copyOptions.ignoreCase), bean);
 	}
-	
+
 	/**
 	 * Map转Map
+	 * 
 	 * @param source 源Map
 	 * @param dest 目标Map
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void mapToMap(Map source, Map dest) {
-		if(null != dest && null != source) {
+		if (null != dest && null != source) {
 			dest.putAll(source);
 		}
 	}
-	
+
 	/**
 	 * 对象转Map
 	 * 
 	 * @param bean bean对象
 	 * @param targetMap 目标的Map
-	 * @return Map
 	 * @since 4.1.22
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -129,7 +155,7 @@ public class BeanCopier<T> implements Copier<T> {
 		final Collection<PropDesc> props = BeanUtil.getBeanDesc(bean.getClass()).getProps();
 		final HashSet<String> ignoreSet = (null != copyOptions.ignoreProperties) ? CollUtil.newHashSet(copyOptions.ignoreProperties) : null;
 		final CopyOptions copyOptions = this.copyOptions;
-		
+
 		String key;
 		Method getter;
 		Object value;
@@ -174,10 +200,10 @@ public class BeanCopier<T> implements Copier<T> {
 		if (null == valueProvider) {
 			return;
 		}
-		
+
 		final CopyOptions copyOptions = this.copyOptions;
 		Class<?> actualEditable = bean.getClass();
-		if (copyOptions.editable != null) {
+		if (null != copyOptions.editable) {
 			// 检查限制类是否为target的父类或接口
 			if (false == copyOptions.editable.isInstance(bean)) {
 				throw new IllegalArgumentException(StrUtil.format("Target class [{}] not assignable to Editable class [{}]", bean.getClass().getName(), copyOptions.editable.getName()));
@@ -209,25 +235,37 @@ public class BeanCopier<T> implements Copier<T> {
 				// Setter方法不存在跳过
 				continue;
 			}
-			
+
 			Type firstParamType = TypeUtil.getFirstParamType(setterMethod);
-			if(firstParamType instanceof TypeVariable) {
-				// 参数为泛型，查找其真实类型
-				firstParamType = TypeUtil.getActualType(actualEditable, setterMethod.getDeclaringClass(), (TypeVariable<?>)firstParamType);
+			if (firstParamType instanceof ParameterizedType) {
+				// 参数为泛型参数类型，解析对应泛型类型为真实类型
+				ParameterizedType tmp = (ParameterizedType) firstParamType;
+				Type[] actualTypeArguments = tmp.getActualTypeArguments();
+				if (TypeUtil.hasTypeVeriable(actualTypeArguments)) {
+					// 泛型对象中含有未被转换的泛型变量
+					actualTypeArguments = TypeUtil.getActualTypes(this.destType, setterMethod.getDeclaringClass(), tmp.getActualTypeArguments());
+					if (ArrayUtil.isNotEmpty(actualTypeArguments)) {
+						// 替换泛型变量为实际类型
+						firstParamType = new ParameterizedTypeImpl(actualTypeArguments, tmp.getOwnerType(), tmp.getRawType());
+					}
+				}
+			} else if (firstParamType instanceof TypeVariable) {
+				// 参数为泛型，查找其真实类型（适用于泛型方法定义于泛型父类）
+				firstParamType = TypeUtil.getActualType(this.destType, setterMethod.getDeclaringClass(), firstParamType);
 			}
-			
+
 			value = valueProvider.value(providerKey, firstParamType);
 			if (null == value && copyOptions.ignoreNullValue) {
 				continue;// 当允许跳过空时，跳过
 			}
-			if(bean.equals(value)) {
+			if (bean.equals(value)) {
 				continue;// 值不能为bean本身，防止循环引用
 			}
 
 			try {
 				// valueProvider在没有对值做转换且当类型不匹配的时候，执行默认转换
 				propClass = prop.getFieldClass();
-				if (false == propClass.isInstance(value)) {
+				if (false ==propClass.isInstance(value)) {
 					value = Convert.convert(propClass, value);
 					if (null == value && copyOptions.ignoreNullValue) {
 						continue;// 当允许跳过空时，跳过
@@ -237,11 +275,10 @@ public class BeanCopier<T> implements Copier<T> {
 				// 执行set方法注入值
 				setterMethod.invoke(bean, value);
 			} catch (Exception e) {
-				if (copyOptions.ignoreError) {
-					continue;// 忽略注入失败
-				} else {
+				if (false ==copyOptions.ignoreError) {
 					throw new UtilException(e, "Inject [{}] error!", prop.getFieldName());
 				}
+				// 忽略注入失败
 			}
 		}
 	}

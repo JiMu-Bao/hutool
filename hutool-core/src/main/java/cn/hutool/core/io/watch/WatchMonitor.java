@@ -3,10 +3,12 @@ package cn.hutool.core.io.watch;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -40,7 +42,8 @@ import cn.hutool.core.util.URLUtil;
  * @author Looly
  *
  */
-public class WatchMonitor extends Thread implements Closeable{
+public class WatchMonitor extends Thread implements Closeable, Serializable{
+	private static final long serialVersionUID = 1L;
 	
 	/** 事件丢失 */
 	public static final WatchEvent.Kind<?> OVERFLOW = StandardWatchEventKinds.OVERFLOW;
@@ -375,7 +378,7 @@ public class WatchMonitor extends Thread implements Closeable{
 			WatchKey wk;
 			try {
 				wk = watchService.take();
-			} catch (InterruptedException e) {
+			} catch (InterruptedException | ClosedWatchServiceException e) {
 //				log.warn(e);
 				return;
 			}

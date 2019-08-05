@@ -6,7 +6,7 @@ package cn.hutool.bloomfilter.bitMap;
  * @author looly
  *
  */
-public interface BitMap {
+public interface BitMap{
 
 	public final int MACHINE32 = 32;
 	public final int MACHINE64 = 64;

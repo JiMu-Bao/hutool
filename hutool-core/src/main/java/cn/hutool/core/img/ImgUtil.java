@@ -42,7 +42,6 @@ import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.resource.Resource;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -65,11 +64,10 @@ public class ImgUtil {
 
 	// ---------------------------------------------------------------------------------------------------------------------- scale
 	/**
-	 * 缩放图像（按比例缩放）<br>
-	 * 缩放后默认为jpeg格式
+	 * 缩放图像（按比例缩放），目标文件的扩展名决定目标文件类型
 	 * 
 	 * @param srcImageFile 源图像文件
-	 * @param destImageFile 缩放后的图像文件
+	 * @param destImageFile 缩放后的图像文件，扩展名决定目标类型
 	 * @param scale 缩放比例。比例大于1时为放大，小于1大于0为缩小
 	 */
 	public static void scale(File srcImageFile, File destImageFile, float scale) {
@@ -113,7 +111,7 @@ public class ImgUtil {
 	 * @since 3.2.2
 	 */
 	public static void scale(Image srcImg, File destFile, float scale) throws IORuntimeException {
-		write(scale(srcImg, scale), destFile);
+		Img.from(srcImg).setTargetImageType(FileUtil.extName(destFile)).scale(scale).write(destFile);
 	}
 
 	/**
@@ -328,7 +326,7 @@ public class ImgUtil {
 	 * @return {@link BufferedImage}
 	 * @since 3.1.0
 	 */
-	public static BufferedImage cut(Image srcImage, Rectangle rectangle) {
+	public static Image cut(Image srcImage, Rectangle rectangle) {
 		return Img.from(srcImage).setPositionBaseCentre(false).cut(rectangle).getImg();
 	}
 
@@ -338,10 +336,10 @@ public class ImgUtil {
 	 * @param srcImage 源图像
 	 * @param x 原图的x坐标起始位置
 	 * @param y 原图的y坐标起始位置
-	 * @return {@link BufferedImage}
+	 * @return {@link Image}
 	 * @since 4.1.15
 	 */
-	public static BufferedImage cut(Image srcImage, int x, int y) {
+	public static Image cut(Image srcImage, int x, int y) {
 		return cut(srcImage, x, y, -1);
 	}
 
@@ -352,10 +350,10 @@ public class ImgUtil {
 	 * @param x 原图的x坐标起始位置
 	 * @param y 原图的y坐标起始位置
 	 * @param radius 半径，小于0表示填充满整个图片（直径取长宽最小值）
-	 * @return {@link BufferedImage}
+	 * @return {@link Image}
 	 * @since 4.1.15
 	 */
-	public static BufferedImage cut(Image srcImage, int x, int y, int radius) {
+	public static Image cut(Image srcImage, int x, int y, int radius) {
 		return Img.from(srcImage).cut(x, y, radius).getImg();
 	}
 
@@ -386,8 +384,8 @@ public class ImgUtil {
 		if (destHeight <= 0) {
 			destHeight = 150; // 切片高度
 		}
-		int srcWidth = srcImage.getHeight(null); // 源图宽度
-		int srcHeight = srcImage.getWidth(null); // 源图高度
+		int srcWidth = srcImage.getWidth(null); // 源图宽度
+		int srcHeight = srcImage.getHeight(null); // 源图高度
 
 		try {
 			if (srcWidth > destWidth && srcHeight > destHeight) {
@@ -405,14 +403,14 @@ public class ImgUtil {
 					rows = (int) Math.floor(srcHeight / destHeight) + 1;
 				}
 				// 循环建立切片
-				BufferedImage tag;
+				Image tag;
 				for (int i = 0; i < rows; i++) {
 					for (int j = 0; j < cols; j++) {
 						// 四个参数分别为图像起点坐标和宽高
 						// 即: CropImageFilter(int x,int y,int width,int height)
 						tag = cut(srcImage, new Rectangle(j * destWidth, i * destHeight, destWidth, destHeight));
 						// 输出为文件
-						ImageIO.write(tag, IMAGE_TYPE_JPEG, new File(descDir, "_r" + i + "_c" + j + ".jpg"));
+						ImageIO.write(toRenderedImage(tag), IMAGE_TYPE_JPEG, new File(descDir, "_r" + i + "_c" + j + ".jpg"));
 					}
 				}
 			}
@@ -460,20 +458,20 @@ public class ImgUtil {
 				cols = 2; // 切片列数
 			}
 			// 读取源图像
-			final BufferedImage bi = toBufferedImage(srcImage);
-			int srcWidth = bi.getWidth(); // 源图宽度
-			int srcHeight = bi.getHeight(); // 源图高度
+			final Image bi = toBufferedImage(srcImage);
+			int srcWidth = bi.getWidth(null); // 源图宽度
+			int srcHeight = bi.getHeight(null); // 源图高度
 
 			int destWidth = NumberUtil.partValue(srcWidth, cols); // 每张切片的宽度
 			int destHeight = NumberUtil.partValue(srcHeight, rows); // 每张切片的高度
 
 			// 循环建立切片
-			BufferedImage tag;
+			Image tag;
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
 					tag = cut(bi, new Rectangle(j * destWidth, i * destHeight, destWidth, destHeight));
 					// 输出为文件
-					ImageIO.write(tag, IMAGE_TYPE_JPEG, new File(destDir, "_r" + i + "_c" + j + ".jpg"));
+					ImageIO.write(toRenderedImage(tag), IMAGE_TYPE_JPEG, new File(destDir, "_r" + i + "_c" + j + ".jpg"));
 				}
 			}
 		} catch (IOException e) {
@@ -648,7 +646,7 @@ public class ImgUtil {
 	 * @return {@link Image}灰度后的图片
 	 * @since 3.1.0
 	 */
-	public static BufferedImage gray(Image srcImage) {
+	public static Image gray(Image srcImage) {
 		return Img.from(srcImage).gray().getImg();
 	}
 
@@ -734,7 +732,7 @@ public class ImgUtil {
 	 * @return {@link Image}二值化后的图片
 	 * @since 4.0.5
 	 */
-	public static BufferedImage binary(Image srcImage) {
+	public static Image binary(Image srcImage) {
 		return Img.from(srcImage).binary().getImg();
 	}
 
@@ -859,7 +857,7 @@ public class ImgUtil {
 	 * @return 处理后的图像
 	 * @since 3.2.2
 	 */
-	public static BufferedImage pressText(Image srcImage, String pressText, Color color, Font font, int x, int y, float alpha) {
+	public static Image pressText(Image srcImage, String pressText, Color color, Font font, int x, int y, float alpha) {
 		return Img.from(srcImage).pressText(pressText, color, font, x, y, alpha).getImg();
 	}
 
@@ -969,7 +967,7 @@ public class ImgUtil {
 	 * @param alpha 透明度：alpha 必须是范围 [0.0, 1.0] 之内（包含边界值）的一个浮点数字
 	 * @return 结果图片
 	 */
-	public static BufferedImage pressImage(Image srcImage, Image pressImg, int x, int y, float alpha) {
+	public static Image pressImage(Image srcImage, Image pressImg, int x, int y, float alpha) {
 		return Img.from(srcImage).pressImage(pressImg, x, y, alpha).getImg();
 	}
 
@@ -984,7 +982,7 @@ public class ImgUtil {
 	 * @return 结果图片
 	 * @since 4.1.14
 	 */
-	public static BufferedImage pressImage(Image srcImage, Image pressImg, Rectangle rectangle, float alpha) {
+	public static Image pressImage(Image srcImage, Image pressImg, Rectangle rectangle, float alpha) {
 		return Img.from(srcImage).pressImage(pressImg, rectangle, alpha).getImg();
 	}
 
@@ -1054,7 +1052,7 @@ public class ImgUtil {
 	 * @return 旋转后的图片
 	 * @since 3.2.2
 	 */
-	public static BufferedImage rotate(Image image, int degree) {
+	public static Image rotate(Image image, int degree) {
 		return Img.from(image).rotate(degree).getImg();
 	}
 
@@ -1114,7 +1112,7 @@ public class ImgUtil {
 	 * @return 翻转后的图片
 	 * @since 3.2.2
 	 */
-	public static BufferedImage flip(Image image) {
+	public static Image flip(Image image) {
 		return Img.from(image).flip().getImg();
 	}
 
@@ -1189,12 +1187,12 @@ public class ImgUtil {
 		}
 		return bufferedImage;
 	}
-
+	
 	/**
 	 * 将已有Image复制新的一份出来
 	 * 
 	 * @param img {@link Image}
-	 * @param imageType {@link BufferedImage}中的常量，图像类型，例如黑白等
+	 * @param imageType 目标图片类型，{@link BufferedImage}中的常量，例如黑白等
 	 * @return {@link BufferedImage}
 	 * @see BufferedImage#TYPE_INT_RGB
 	 * @see BufferedImage#TYPE_INT_ARGB
@@ -1211,8 +1209,34 @@ public class ImgUtil {
 	 * @see BufferedImage#TYPE_USHORT_555_RGB
 	 */
 	public static BufferedImage copyImage(Image img, int imageType) {
+		return copyImage(img, imageType, null);
+	}
+
+	/**
+	 * 将已有Image复制新的一份出来
+	 * 
+	 * @param img {@link Image}
+	 * @param imageType 目标图片类型，{@link BufferedImage}中的常量，例如黑白等
+	 * @param backgroundColor 背景色，{@code null} 表示默认背景色（黑色或者透明）
+	 * @return {@link BufferedImage}
+	 * @see BufferedImage#TYPE_INT_RGB
+	 * @see BufferedImage#TYPE_INT_ARGB
+	 * @see BufferedImage#TYPE_INT_ARGB_PRE
+	 * @see BufferedImage#TYPE_INT_BGR
+	 * @see BufferedImage#TYPE_3BYTE_BGR
+	 * @see BufferedImage#TYPE_4BYTE_ABGR
+	 * @see BufferedImage#TYPE_4BYTE_ABGR_PRE
+	 * @see BufferedImage#TYPE_BYTE_GRAY
+	 * @see BufferedImage#TYPE_USHORT_GRAY
+	 * @see BufferedImage#TYPE_BYTE_BINARY
+	 * @see BufferedImage#TYPE_BYTE_INDEXED
+	 * @see BufferedImage#TYPE_USHORT_565_RGB
+	 * @see BufferedImage#TYPE_USHORT_555_RGB
+	 * @since 4.5.17
+	 */
+	public static BufferedImage copyImage(Image img, int imageType, Color backgroundColor) {
 		final BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), imageType);
-		final Graphics2D bGr = bimage.createGraphics();
+		final Graphics2D bGr = GraphicsUtil.createGraphics(bimage, backgroundColor);
 		bGr.drawImage(img, 0, 0, null);
 		bGr.dispose();
 
@@ -1227,8 +1251,7 @@ public class ImgUtil {
 	 * @throws IORuntimeException IO异常
 	 */
 	public static BufferedImage toImage(String base64) throws IORuntimeException {
-		byte[] decode = Base64.decode(base64, CharsetUtil.CHARSET_UTF_8);
-		return toImage(decode);
+		return toImage(Base64.decode(base64));
 	}
 
 	/**
@@ -1432,7 +1455,7 @@ public class ImgUtil {
 		if (StrUtil.isBlank(imageType)) {
 			imageType = IMAGE_TYPE_JPG;
 		}
-
+		
 		final ImageWriter writer = getWriter(image, imageType);
 		return write(toBufferedImage(image, imageType), writer, destImageStream, quality);
 	}
@@ -1469,7 +1492,7 @@ public class ImgUtil {
 		if (writer == null) {
 			return false;
 		}
-
+		
 		writer.setOutput(output);
 		final RenderedImage renderedImage = toRenderedImage(image);
 		// 设置质量
@@ -1706,7 +1729,7 @@ public class ImgUtil {
 	 * @since 4.1.14
 	 */
 	public static Color hexToColor(String hex) {
-		return getColor(Integer.parseInt(StrUtil.removePrefix("#", hex), 16));
+		return getColor(Integer.parseInt(StrUtil.removePrefix(hex, "#"), 16));
 	}
 
 	/**

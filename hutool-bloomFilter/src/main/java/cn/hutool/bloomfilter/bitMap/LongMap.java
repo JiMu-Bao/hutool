@@ -1,14 +1,15 @@
 package cn.hutool.bloomfilter.bitMap;
 
+import java.io.Serializable;
+
 /**
  * 过滤器BitMap在64位机器上.这个类能发生更好的效果.一般机器不建议使用
  * 
  * @author loolly
  *
  */
-public class LongMap implements BitMap {
-
-	private static final long MAX = Long.MAX_VALUE;
+public class LongMap implements BitMap, Serializable {
+	private static final long serialVersionUID = 1L;
 
 	private long[] longs = null;
 
@@ -49,7 +50,7 @@ public class LongMap implements BitMap {
 	public void remove(long i) {
 		int r = (int) (i / BitMap.MACHINE64);
 		long c = i % BitMap.MACHINE64;
-		longs[r] = longs[r] & (((1 << (c + 1)) - 1) ^ MAX);
+		longs[r] &= ~(1 << c);
 	}
 
 }

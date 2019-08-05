@@ -35,9 +35,29 @@ public class ExcelWriteTest {
 	@Ignore
 	public void writeTest2() {
 		List<String> row = CollUtil.newArrayList("姓名", "加班日期", "下班时间", "加班时长", "餐补", "车补次数", "车补", "总计");
-		ExcelWriter overtimeWriter = ExcelUtil.getWriter("e:/single_line.xlsx");
-		overtimeWriter.write(row);
+		ExcelWriter overtimeWriter = ExcelUtil.getWriter("e:/excel/single_line.xlsx");
+		overtimeWriter.writeRow(row);
 		overtimeWriter.close();
+	}
+
+	@Test
+	@Ignore
+	public void writeWithSheetTest() {
+		ExcelWriter writer = ExcelUtil.getWriterWithSheet("表格1");
+
+		// 写出第一张表
+		List<String> row = CollUtil.newArrayList("姓名", "加班日期", "下班时间", "加班时长", "餐补", "车补次数", "车补", "总计");
+		writer.writeRow(row);
+
+		// 写出第二张表
+		writer.setSheet("表格2");
+		List<String> row2 = CollUtil.newArrayList("姓名2", "加班日期2", "下班时间2", "加班时长2", "餐补2", "车补次数2", "车补2", "总计2");
+		writer.writeRow(row2);
+
+		// 生成文件或导出Excel
+		writer.flush(FileUtil.file("f:/test/writeWithSheetTest.xlsx"));
+
+		writer.close();
 	}
 
 	@Test
@@ -105,7 +125,7 @@ public class ExcelWriteTest {
 
 	@Test
 	@Ignore
-	public void writeMapTest() {
+	public void mergeTest2() {
 		Map<String, Object> row1 = new LinkedHashMap<>();
 		row1.put("姓名", "张三");
 		row1.put("年龄", 23);
@@ -124,6 +144,40 @@ public class ExcelWriteTest {
 
 		// 通过工具类创建writer
 		ExcelWriter writer = ExcelUtil.getWriter("e:/writeMapTest.xlsx");
+		// 合并单元格后的标题行，使用默认标题样式
+		try {
+			writer.merge(row1.size() - 1, "一班成绩单");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// 一次性写出内容，使用默认样式，强制输出标题
+		writer.write(rows, true);
+		// 关闭writer，释放内存
+		writer.close();
+	}
+
+	@Test
+	@Ignore
+	public void writeMapTest() {
+		Map<String, Object> row1 = new LinkedHashMap<>();
+		row1.put("姓名", "张三");
+		row1.put("年龄", 23);
+		row1.put("成绩", 88.32);
+		row1.put("是否合格", true);
+		row1.put("考试日期", DateUtil.date());
+
+		Map<String, Object> row2 = new LinkedHashMap<>();
+		row2.put("姓名", "李四");
+		row2.put("年龄", 33);
+		row2.put("成绩", 59.50);
+		row2.put("是否合格", false);
+		row2.put("考试日期", DateUtil.date());
+
+		ArrayList<Map<String, Object>> rows = CollUtil.newArrayList(row1, row2);
+
+		// 通过工具类创建writer
+		ExcelWriter writer = ExcelUtil.getWriter("e:/excel/writeMapTest.xlsx");
 
 		// 设置内容字体
 		Font font = writer.createFont();
@@ -158,7 +212,7 @@ public class ExcelWriteTest {
 		// 关闭writer，释放内存
 		writer.close();
 	}
-	
+
 	@Test
 	@Ignore
 	public void writeMapAliasTest() {
@@ -174,7 +228,7 @@ public class ExcelWriteTest {
 		row2.put("isPass", false);
 		row2.put("score", 32.30);
 		row2.put("examDate", DateUtil.date());
-		
+
 		List<Map<Object, Object>> rows = CollUtil.newArrayList(row1, row2);
 		// 通过工具类创建writer
 		String file = "e:/writeMapAlias.xlsx";
@@ -193,7 +247,7 @@ public class ExcelWriteTest {
 		// 关闭writer，释放内存
 		writer.close();
 	}
-	
+
 	@Test
 	@Ignore
 	public void writeMapOnlyAliasTest() {
@@ -209,10 +263,10 @@ public class ExcelWriteTest {
 		row2.put("isPass", false);
 		row2.put("score", 32.30);
 		row2.put("examDate", DateUtil.date());
-		
+
 		List<Map<Object, Object>> rows = CollUtil.newArrayList(row1, row2);
 		// 通过工具类创建writer
-		String file = "e:/writeMapOnlyAlias.xlsx";
+		String file = "f:/test/test_alias.xlsx";
 		FileUtil.del(file);
 		ExcelWriter writer = ExcelUtil.getWriter(file);
 		writer.setOnlyAlias(true);
@@ -227,6 +281,36 @@ public class ExcelWriteTest {
 		writer.close();
 	}
 	
+	@Test
+//	@Ignore
+	public void writeMapOnlyAliasTest2() {
+		Map<Object, Object> row1 = new LinkedHashMap<>();
+		row1.put("name", "张三");
+		row1.put("age", 22);
+		row1.put("isPass", true);
+		row1.put("score", 66.30);
+		row1.put("examDate", DateUtil.date());
+		Map<Object, Object> row2 = new LinkedHashMap<>();
+		row2.put("name", "李四");
+		row2.put("age", 233);
+		row2.put("isPass", false);
+		row2.put("score", 32.30);
+		row2.put("examDate", DateUtil.date());
+
+		List<Map<Object, Object>> rows = CollUtil.newArrayList(row1, row2);
+		// 通过工具类创建writer
+		String file = "f:/test/test_alias.xls";
+		ExcelWriter writer = ExcelUtil.getWriter(file, "test1");
+//		writer.setOnlyAlias(true);
+		// 自定义标题
+		writer.addHeaderAlias("name", "姓名");
+		writer.addHeaderAlias("age", "年龄");
+		// 一次性写出内容，使用默认样式
+		writer.write(rows, true);
+		// 关闭writer，释放内存
+		writer.close();
+	}
+
 	@Test
 	@Ignore
 	public void writeBeanTest() {

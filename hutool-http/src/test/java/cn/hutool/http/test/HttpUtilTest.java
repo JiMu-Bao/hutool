@@ -1,6 +1,6 @@
 package cn.hutool.http.test;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.ReUtil;
@@ -30,7 +31,7 @@ public class HttpUtilTest {
 		String result1 = HttpUtil.get("http://photo.qzone.qq.com/fcgi-bin/fcg_list_album?uin=88888&outstyle=2", CharsetUtil.CHARSET_GBK);
 		Console.log(result1);
 	}
-	
+
 	@Test
 	@Ignore
 	public void getTest2() {
@@ -48,7 +49,17 @@ public class HttpUtilTest {
 		String result1 = HttpUtil.get("http://122.152.198.206:5000/kf?abc= d");
 		Console.log(result1);
 	}
-	
+
+	@Test
+	@Ignore
+	public void getTest4() {
+		// 测试url中带有空格的情况
+		byte[] str = HttpRequest.get("http://img01.fs.yiban.cn/mobile/2D0Y71").execute().bodyBytes();
+
+		FileUtil.writeBytes(str, "f:/test/2D.jpg");
+		Console.log(str);
+	}
+
 	@Test
 	@Ignore
 	public void get12306Test() {
@@ -76,6 +87,9 @@ public class HttpUtilTest {
 			// 打印标题
 			Console.log(title);
 		}
+
+		// 请求下一页，检查Cookie是否复用
+		listContent = HttpUtil.get("https://www.oschina.net/action/ajax/get_more_news_list?newsType=&p=3");
 	}
 
 	@Test
@@ -199,7 +213,7 @@ public class HttpUtilTest {
 
 	@Test
 	public void urlWithFormTest() {
-		Map<String, Object> param = new HashMap<>();
+		Map<String, Object> param = new LinkedHashMap<>();
 		param.put("AccessKeyId", "123");
 		param.put("Action", "DescribeDomainRecords");
 		param.put("Format", "date");
@@ -212,20 +226,20 @@ public class HttpUtilTest {
 
 		String urlWithForm = HttpUtil.urlWithForm("http://api.hutool.cn/login?type=aaa", param, CharsetUtil.CHARSET_UTF_8, false);
 		Assert.assertEquals(
-				"http://api.hutool.cn/login?type=aaa&Format=date&Action=DescribeDomainRecords&AccessKeyId=123&SignatureMethod=POST&DomainName=lesper.cn&SignatureNonce=123&Version=1.0&SignatureVersion=4.3.1&Timestamp=123432453",
+				"http://api.hutool.cn/login?type=aaa&AccessKeyId=123&Action=DescribeDomainRecords&Format=date&DomainName=lesper.cn&SignatureMethod=POST&SignatureNonce=123&SignatureVersion=4.3.1&Timestamp=123432453&Version=1.0",
 				urlWithForm);
 
 		urlWithForm = HttpUtil.urlWithForm("http://api.hutool.cn/login?type=aaa", param, CharsetUtil.CHARSET_UTF_8, false);
 		Assert.assertEquals(
-				"http://api.hutool.cn/login?type=aaa&Format=date&Action=DescribeDomainRecords&AccessKeyId=123&SignatureMethod=POST&DomainName=lesper.cn&SignatureNonce=123&Version=1.0&SignatureVersion=4.3.1&Timestamp=123432453",
+				"http://api.hutool.cn/login?type=aaa&AccessKeyId=123&Action=DescribeDomainRecords&Format=date&DomainName=lesper.cn&SignatureMethod=POST&SignatureNonce=123&SignatureVersion=4.3.1&Timestamp=123432453&Version=1.0",
 				urlWithForm);
 	}
-	
+
 	@Test
 	public void getCharsetTest() {
 		String charsetName = ReUtil.get(HttpUtil.CHARSET_PATTERN, "Charset=UTF-8;fq=0.9", 1);
 		Assert.assertEquals("UTF-8", charsetName);
-		
+
 		charsetName = ReUtil.get(HttpUtil.META_CHARSET_PATTERN, "<meta charset=utf-8", 1);
 		Assert.assertEquals("utf-8", charsetName);
 		charsetName = ReUtil.get(HttpUtil.META_CHARSET_PATTERN, "<meta charset='utf-8'", 1);
@@ -234,5 +248,11 @@ public class HttpUtilTest {
 		Assert.assertEquals("utf-8", charsetName);
 		charsetName = ReUtil.get(HttpUtil.META_CHARSET_PATTERN, "<meta charset = \"utf-8\"", 1);
 		Assert.assertEquals("utf-8", charsetName);
+	}
+
+	@Test
+	public void normalizeParamsTest() {
+		String encodeResult = HttpUtil.normalizeParams("参数", CharsetUtil.CHARSET_UTF_8);
+		Assert.assertEquals("%E5%8F%82%E6%95%B0", encodeResult);
 	}
 }

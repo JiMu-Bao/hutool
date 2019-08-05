@@ -73,8 +73,15 @@ public class MetaUtil {
 		ResultSet rs = null;
 		try {
 			conn = ds.getConnection();
+
+			// catalog和schema获取失败默认使用null代替
+			String catalog = getCataLog(conn);
+			if(null == schema) {
+				schema = getSchema(conn);
+			}
+
 			final DatabaseMetaData metaData = conn.getMetaData();
-			rs = metaData.getTables(conn.getCatalog(), schema, tableName, Convert.toStrArray(types));
+			rs = metaData.getTables(catalog, schema, tableName, Convert.toStrArray(types));
 			if (rs == null) {
 				return null;
 			}
@@ -128,8 +135,13 @@ public class MetaUtil {
 		ResultSet rs = null;
 		try {
 			conn = ds.getConnection();
+
+			// catalog和schema获取失败默认使用null代替
+			String catalog = getCataLog(conn);
+			String schema = getSchema(conn);
+
 			final DatabaseMetaData metaData = conn.getMetaData();
-			rs = metaData.getColumns(conn.getCatalog(), null, tableName, null);
+			rs = metaData.getColumns(catalog, schema, tableName, null);
 			while (rs.next()) {
 				columnNames.add(rs.getString("COLUMN_NAME"));
 			}
@@ -140,7 +152,7 @@ public class MetaUtil {
 			DbUtil.close(rs, conn);
 		}
 	}
-	
+
 	/**
 	 * 创建带有字段限制的Entity对象<br>
 	 * 此方法读取数据库中对应表的字段列表，加入到Entity中，当Entity被设置内容时，会忽略对应表字段外的所有KEY
@@ -153,7 +165,7 @@ public class MetaUtil {
 		final String[] columnNames = getColumnNames(ds, tableName);
 		return Entity.create(tableName).setFieldNames(columnNames);
 	}
-	
+
 	/**
 	 * 获得表的元信息
 	 * 
@@ -168,15 +180,27 @@ public class MetaUtil {
 		ResultSet rs = null;
 		try {
 			conn = ds.getConnection();
+
+			// catalog和schema获取失败默认使用null代替
+			String catalog = getCataLog(conn);
+			String schema = getSchema(conn);
+
 			final DatabaseMetaData metaData = conn.getMetaData();
+
+			// 获得表元数据（表注释）
+			rs = metaData.getTables(catalog, schema, tableName, new String[] { TableType.TABLE.value() });
+			if (rs.next()) {
+				table.setComment(rs.getString("REMARKS"));
+			}
+
 			// 获得主键
-			rs = metaData.getPrimaryKeys(conn.getCatalog(), null, tableName);
+			rs = metaData.getPrimaryKeys(catalog, schema, tableName);
 			while (rs.next()) {
 				table.addPk(rs.getString("COLUMN_NAME"));
 			}
 
 			// 获得列
-			rs = metaData.getColumns(conn.getCatalog(), null, tableName, null);
+			rs = metaData.getColumns(catalog, schema, tableName, null);
 			while (rs.next()) {
 				table.setColumn(Column.create(tableName, rs));
 			}
@@ -187,5 +211,45 @@ public class MetaUtil {
 		}
 
 		return table;
+	}
+
+	/**
+	 * 获取catalog，获取失败返回{@code null}
+	 * 
+	 * @param conn {@link Connection} 数据库连接，{@code null}时返回null
+	 * @return catalog，获取失败返回{@code null}
+	 * @since 4.6.0
+	 */
+	public static String getCataLog(Connection conn) {
+		if (null == conn) {
+			return null;
+		}
+		try {
+			return conn.getCatalog();
+		} catch (SQLException e) {
+			// ignore
+		}
+
+		return null;
+	}
+
+	/**
+	 * 获取schema，获取失败返回{@code null}
+	 * 
+	 * @param conn {@link Connection} 数据库连接，{@code null}时返回null
+	 * @return schema，获取失败返回{@code null}
+	 * @since 4.6.0
+	 */
+	public static String getSchema(Connection conn) {
+		if (null == conn) {
+			return null;
+		}
+		try {
+			return conn.getSchema();
+		} catch (SQLException e) {
+			// ignore
+		}
+
+		return null;
 	}
 }

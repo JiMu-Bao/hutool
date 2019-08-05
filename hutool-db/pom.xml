@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>cn.hutool</groupId>
 		<artifactId>hutool-parent</artifactId>
-		<version>4.5.3</version>
+		<version>4.6.1</version>
 	</parent>
 
 	<artifactId>hutool-db</artifactId>
@@ -18,7 +18,7 @@
 
 	<properties>
 		<!-- versions -->
-		<c3p0.version>0.9.5.3</c3p0.version>
+		<c3p0.version>0.9.5.4</c3p0.version>
 		<dbcp2.version>2.4.0</dbcp2.version>
 		<tomcat-jdbc.version>8.5.35</tomcat-jdbc.version>
 		<druid.version>1.1.12</druid.version>
@@ -127,6 +127,12 @@
 			<groupId>com.microsoft.sqlserver</groupId>
 			<artifactId>mssql-jdbc</artifactId>
 			<version>6.4.0.jre7</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.26</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

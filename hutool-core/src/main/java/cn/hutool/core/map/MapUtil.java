@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,6 +18,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.lang.Filter;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
@@ -72,13 +74,13 @@ public class MapUtil {
 	 * 
 	 * @param <K> Key类型
 	 * @param <V> Value类型
-	 * @param size 初始大小，由于默认负载因子0.75，传入的size会实际初始大小为size / 0.75
+	 * @param size 初始大小，由于默认负载因子0.75，传入的size会实际初始大小为size / 0.75 + 1
 	 * @param isOrder Map的Key是否有序，有序返回 {@link LinkedHashMap}，否则返回 {@link HashMap}
 	 * @return HashMap对象
 	 * @since 3.0.4
 	 */
 	public static <K, V> HashMap<K, V> newHashMap(int size, boolean isOrder) {
-		int initialCapacity = (int) (size / DEFAULT_LOAD_FACTOR);
+		int initialCapacity = (int) (size / DEFAULT_LOAD_FACTOR) + 1;
 		return isOrder ? new LinkedHashMap<K, V>(initialCapacity) : new HashMap<K, V>(initialCapacity);
 	}
 
@@ -87,7 +89,7 @@ public class MapUtil {
 	 * 
 	 * @param <K> Key类型
 	 * @param <V> Value类型
-	 * @param size 初始大小，由于默认负载因子0.75，传入的size会实际初始大小为size / 0.75
+	 * @param size 初始大小，由于默认负载因子0.75，传入的size会实际初始大小为size / 0.75 + 1
 	 * @return HashMap对象
 	 */
 	public static <K, V> HashMap<K, V> newHashMap(int size) {
@@ -131,6 +133,16 @@ public class MapUtil {
 			treeMap.putAll(map);
 		}
 		return treeMap;
+	}
+	
+	/**
+	 * 创建键不重复Map
+	 * 
+	 * @return {@link IdentityHashMap}
+	 * @since 4.5.7
+	 */
+	public static <K, V> Map<K, V> newIdentityMap(int size){
+		return new IdentityHashMap<>(size);
 	}
 
 	/**
@@ -192,10 +204,11 @@ public class MapUtil {
 	 * </pre>
 	 * 
 	 * <pre>
-	 * Map&lt;Object, Object&gt; colorMap = MapUtil.of(new String[][] {{
+	 * Map&lt;Object, Object&gt; colorMap = MapUtil.of(new String[][] {
 	 *     {"RED", "#FF0000"},
 	 *     {"GREEN", "#00FF00"},
-	 *     {"BLUE", "#0000FF"}});
+	 *     {"BLUE", "#0000FF"}
+	 * });
 	 * </pre>
 	 * 
 	 * 参考：commons-lang
@@ -662,6 +675,18 @@ public class MapUtil {
 	public static MapProxy createProxy(Map<?, ?> map) {
 		return MapProxy.create(map);
 	}
+	
+	/**
+	 * 创建Map包装类MapWrapper<br>
+	 * {@link MapWrapper}对Map做一次包装
+	 * 
+	 * @param map 被代理的Map
+	 * @return {@link MapWrapper}
+	 * @since 4.5.4
+	 */
+	public static <K, V> MapWrapper<K, V> wrap(Map<K, V> map) {
+		return new MapWrapper<K, V>(map);
+	}
 
 	// ----------------------------------------------------------------------------------------------- builder
 	/**
@@ -841,5 +866,41 @@ public class MapUtil {
 	 */
 	public static <T> T get(Map<?, ?> map, Object key, Class<T> type) {
 		return null == map ? null : Convert.convert(type, map.get(key));
+	}
+	
+	/**
+	 * 获取Map指定key的值，并转换为指定类型
+	 * 
+	 * @param <T> 目标值类型
+	 * @param map Map
+	 * @param key 键
+	 * @param type 值类型
+	 * @return 值
+	 * @since 4.5.12
+	 */
+	public static <T> T get(Map<?, ?> map, Object key, TypeReference<T> type) {
+		return null == map ? null : Convert.convert(type, map.get(key));
+	}
+	
+	/**
+	 * 重命名键<br>
+	 * 实现方式为一处然后重新put，当旧的key不存在直接返回<br>
+	 * 当新的key存在，抛出{@link IllegalArgumentException} 异常
+	 * 
+	 * @param map Map
+	 * @param oldKey 原键
+	 * @param newKey 新键
+	 * @return map
+	 * @throws IllegalArgumentException 新key存在抛出此异常
+	 * @since 4.5.16
+	 */
+	public static <K, V> Map<K, V> renameKey(Map<K, V> map, K oldKey, K newKey) {
+		if(isNotEmpty(map) && map.containsKey(oldKey)) {
+			if(map.containsKey(newKey)) {
+				throw new IllegalArgumentException(StrUtil.format("The key '{}' exist !", newKey));
+			}
+			map.put(newKey, map.remove(oldKey));
+		}
+		return map;
 	}
 }

@@ -702,7 +702,7 @@ public class FileUtil {
 			// 如果文件不存在或已被删除，此处返回true表示删除成功
 			return true;
 		}
-
+		
 		if (file.isDirectory()) {
 			// 清空目录下所有文件和目录
 			boolean isOk = clean(file);
@@ -796,6 +796,32 @@ public class FileUtil {
 				// 删除一个出错则本次删除任务失败
 				return false;
 			}
+		}
+		return true;
+	}
+	
+	/**
+	 * 清理空文件夹<br>
+	 * 此方法用于递归删除空的文件夹，不删除文件<br>
+	 * 如果传入的文件夹本身就是空的，删除这个文件夹
+	 * 
+	 * @param directory 文件夹
+	 * @return 成功与否
+	 * @throws IORuntimeException IO异常
+	 * @since 4.5.5
+	 */
+	public static boolean cleanEmpty(File directory) throws IORuntimeException {
+		if (directory == null || false == directory.exists() || false == directory.isDirectory()) {
+			return true;
+		}
+
+		final File[] files = directory.listFiles();
+		if(ArrayUtil.isEmpty(files)) {
+			//空文件夹则删除之
+			directory.delete();
+		}
+		for (File childFile : files) {
+			cleanEmpty(childFile);
 		}
 		return true;
 	}
@@ -2420,6 +2446,22 @@ public class FileUtil {
 	 * @since 4.5.2
 	 */
 	public static void readLine(RandomAccessFile file, Charset charset, LineHandler lineHandler) {
+		final String line = readLine(file, charset);
+		if(null != line) {
+			lineHandler.handle(line);
+		}
+	}
+	
+	/**
+	 * 单行处理文件内容
+	 * 
+	 * @param file {@link RandomAccessFile}文件
+	 * @param charset 编码
+	 * @return 行内容
+	 * @throws IORuntimeException IO异常
+	 * @since 4.5.18
+	 */
+	public static String readLine(RandomAccessFile file, Charset charset) {
 		String line = null;
 		try {
 			line = file.readLine();
@@ -2427,8 +2469,10 @@ public class FileUtil {
 			throw new IORuntimeException(e);
 		}
 		if(null != line) {
-			lineHandler.handle(CharsetUtil.convert(line, CharsetUtil.CHARSET_ISO_8859_1, charset));
+			return CharsetUtil.convert(line, CharsetUtil.CHARSET_ISO_8859_1, charset);
 		}
+		
+		return null;
 	}
 
 	/**
@@ -3392,6 +3436,20 @@ public class FileUtil {
 	 */
 	public static boolean isSymlink(File file) throws IORuntimeException {
 		return Files.isSymbolicLink(file.toPath());
+	}
+	
+	/**
+	 * 判断给定的目录是否为给定文件或文件夹的父目录
+	 * 
+	 * @param parent 父目录
+	 * @param sub 子目录
+	 * @return 子目录是否为父目录的子目录
+	 * @since 4.5.4
+	 */
+	public static boolean isSub(File parent, File sub) {
+		Assert.notNull(parent);
+		Assert.notNull(sub);
+		return sub.toPath().startsWith(parent.toPath());
 	}
 
 	/**

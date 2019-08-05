@@ -12,6 +12,7 @@ import cn.hutool.bloomfilter.bitMap.LongMap;
  *
  */
 public abstract class AbstractFilter implements BloomFilter {
+	private static final long serialVersionUID = 1L;
 
 	private BitMap bm = null;
 
@@ -63,7 +64,7 @@ public abstract class AbstractFilter implements BloomFilter {
 
 	@Override
 	public boolean add(String str) {
-		final long hash = this.hash(str);
+		final long hash = Math.abs(hash(str));
 		if (bm.contains(hash)) {
 			return false;
 		}

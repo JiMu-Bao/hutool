@@ -413,7 +413,7 @@ public class CollUtilTest {
 		// Act
 		final List<Integer> retval = CollUtil.sub(list, start, end, step);
 		// Assert result
-		Assert.assertNull(retval);
+		Assert.assertTrue(retval.isEmpty());
 	}
 
 	@Test
@@ -474,7 +474,7 @@ public class CollUtilTest {
 		// Act
 		final List<Integer> retval = CollUtil.sub(list, start, end, step);
 		// Assert result
-		Assert.assertNull(retval);
+		Assert.assertTrue(retval.isEmpty());
 	}
 
 	@Test
@@ -531,19 +531,44 @@ public class CollUtilTest {
 		// Act
 		final List<Integer> retval = CollUtil.sub(list, start, end);
 		// Assert result
-		Assert.assertNull(retval);
+		Assert.assertTrue(retval.isEmpty());
 	}
-	
+
 	@Test
 	public void sortPageAllTest() {
-		ArrayList<Integer> list = CollUtil.newArrayList(1,2,3,4,5,6,7,8,9);
+		ArrayList<Integer> list = CollUtil.newArrayList(1, 2, 3, 4, 5, 6, 7, 8, 9);
 		List<Integer> sortPageAll = CollUtil.sortPageAll(2, 5, new Comparator<Integer>() {
 			@Override
 			public int compare(Integer o1, Integer o2) {
-				//反序
+				// 反序
 				return o2.compareTo(o1);
-			}}, list);
+			}
+		}, list);
+
+		Assert.assertEquals(CollUtil.newArrayList(4, 3, 2, 1), sortPageAll);
+	}
+	
+	@Test
+	public void containsAnyTest() {
+		ArrayList<Integer> list1 = CollUtil.newArrayList(1, 2, 3, 4, 5);
+		ArrayList<Integer> list2 = CollUtil.newArrayList(5, 3, 1, 9, 11);
 		
-		Assert.assertEquals(CollUtil.newArrayList(4,3,2,1), sortPageAll);
+		Assert.assertTrue(CollUtil.containsAny(list1, list2));
+	}
+
+	@Test
+	public void containsAllTest() {
+		ArrayList<Integer> list1 = CollUtil.newArrayList(1, 2, 3, 4, 5);
+		ArrayList<Integer> list2 = CollUtil.newArrayList(5, 3, 1);
+		
+		Assert.assertTrue(CollUtil.containsAll(list1, list2));
+	}
+	
+	@Test
+	public void getLastTest() {
+		// 测试：空数组返回null而不是报错
+		List<String> test = CollUtil.newArrayList();
+		String last = CollUtil.getLast(test);
+		Assert.assertNull(last);
 	}
 }

@@ -3,6 +3,273 @@
 
 -------------------------------------------------------------------------------------------------------------
 
+## 4.6.1
+
+### 新特性
+### Bug修复
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.6.0
+
+### 新特性
+* 【all  】         增加hutool-bom模块，用于可排除的依赖引入
+* 【core】         ResourceUtil增加readBytes方法
+* 【captcha】   更换为逻辑字体
+* 【extra】       Mail增加reply（issue#445@Github）
+* 【core】        去掉重复方法（issue#IZQYR@Gitee）
+* 【db】          改进结果集转Bean的下划线和驼峰兼容性（issue#IZOPL@Gitee）
+* 【system】    增加JavaInfo对新版本java的支持（pr#454@Github）
+* 【extra】      增加可选标志位，是否返回当前目录（issue#446@Github）
+
+### Bug修复
+* 【core】         修复ImgUtil.slice宽高取反问题（issue#438@Github）
+* 【crypto】      修复MD516位摘要长度错误问题（issue#IZNPE@Gitee）
+* 【core】         修复ImgUtil.hexToColor调用参数问题（issue#449@Github）
+* 【http】          修复可能存在的Http请求结束未关闭连接的情况（issue#449@Github）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.18
+
+### 新特性
+* 【poi】          增加ExcelUtil.getWriterWithSheet方法（感谢@【长沙】NULL）
+* 【core】        EnumUtil和ObjectUtil增加方法（pr#57@Gitee）
+* 【core】        EnumUtil增加fromString重载支持默认值（issue#IZFXJ@Gitee）
+* 【core】        DateUtil.parse增加Locale对象重载（issue#437@Github）
+
+### Bug修复
+* 【core】         修复无效的日志打印（issue#IZFW9@Gitee）
+* 【core】         修复Validator.isBirthday注释（issue#IZFMG@Gitee）
+* 【core】         修复TextSimilarity 的bug（issue#435@Github）
+* 【core】         修复Tailer预读取行bug（issue#IZHAT@Gitee）
+* 【core】         修复使用slf4j-simple不打印日志问题
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.17
+
+### 新特性
+* 【http】         SoapClient增加超时设置（issue#IYQHK@Gitee）
+* 【captcha】   修正验证码位置，增加可选文字透明度（issue#421@Github）
+* 【poi】          ExcelWriter.setRowHeight增加空指针检查（issue#IYN63@Gitee）
+* 【core】        ImgUtil增加copyImage可选背景色（issue#IYX3E@Gitee）
+* 【core】        CollUtil.sub方法在空列表时返回空数组而非null（issue#430@Github）
+* 【core】        改进本地IP地址获取方法（issue#428@Github）
+* 【core】        WatchMonitor增加ClosedWatchServiceException异常处理（issue#427@Github）
+
+### Bug修复
+* 【crypto】      修复DigestUtil.md5方法的注释（issue#IYQHG@Gitee）
+* 【core】         修复MapUtil.newHashMap初始容量问题（issue#IYKJJ@Gitee）
+* 【core】         修复HttpUtil.encodeParam多出=问题（issue#IZ3PI@Gitee）
+* 【core】         修复Img.scale变形问题（issue#431@Gitee）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.16
+
+### 新特性
+* 【cache】       缓存增加get重载（pr#404@Github）
+* 【poi】           增加WordUtil
+* 【core】         改进fnvHash避免负数（issue#IYDK6@Gitee）
+* 【core】         改进BeanCoper逻辑（pr#45@Gitee）
+* 【all】             实现必要序列化接口
+* 【db】            Entity增加可选忽略大小写（issue#IYGVW@Gitee）
+* 【core】         MapUtil增加renameKey方法（感谢@【帝都】宁静）
+
+### Bug修复
+* 【poi】           修复sax中读取Excel普通单元格设置日期格式识别问题（issue#IYD0L@Gitee）
+* 【http】         修复setParam非String值失效问题（issue#IYF9Y@Gitee）
+* 【core】         修复FileUtil.cleanEmpty第二层直接删除文件夹的问题（感谢@【上海】风景）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.15
+
+### 新特性
+
+### Bug修复
+* 【extra】         修复JschUtil.exec不执行命名的问题（issue#405@Github）
+* 【http】          修复CookieManager全局设定导致的可能存在的冲突，增加自定义的GlobalCookieManager
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.14
+
+### 新特性
+* 【poi】          增加TableUtil
+* 【http】        HttpRequest增加setCookieManager方法
+* 【http】        改进url错误时的报错信息（感谢@【北京】thumb）
+
+### Bug修复
+* 【core】        修复ZipUtil.zlib压缩识别问题（感谢@【上海】 沙漏）
+* 【log】           调整log模块层次结构，兼容slf4j的API（issue#IY8DX@Gitee）
+* 【core】         Convert.toXXX带默认值换成convertQuietly实现，避免异常（issue#403@Gitee）
+* 【log】           解决行号错误问题
+* 【log】           修复decimalFormatMoney中整数丢失问题（issue#IY9OV@Gitee）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.13
+
+### 新特性
+* 【crypto】      提供HmacSM3支持（issue#396@Github）
+* 【setting】     SettingLoader添加同步锁（issue#396@Github）
+
+### Bug修复
+* 【log】           修复log模块模板拼接时没有判断等级关闭与否的问题
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.12
+
+### 新特性
+* 【json】          解析JSON字符串去除两边空白符(同时解决字符串中bom问题（issue#381@Github）
+* 【poi】           Sax解析增加在异常后关闭文件的逻辑（issue#IXBOU@Gitee）
+* 【core】         MapUtil增加get重载（TypeReference）（issue#IXL81@Gitee）
+* 【crypto】      RC4增加encryptHex和encryptBase64方法（issue#387@Github）
+* 【core】         DateUtil.parse增加格式（issue#385@Github）
+* 【core】         增加CollUtil.containsAny（感谢【北京】宁静）
+* 【core】         增加CollUtil.keySet和values（issue#IXYQJ@Gitee）
+
+### Bug修复
+* 【poi】           解决三目运算符导致类型转换问题（issue#385@Github）
+* 【core】         解决NumberUtil.decimalFormatMoney格式错误问题（issue#391@Github）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.11
+
+### 新特性
+* 【core】           DateUtil.parse方法识别时间增强（issue#IWMM6@Gitee）
+* 【extra】           Mail中Files附件可选为空（issue#365@Github）
+* 【extra】           EmojiUtil增加containsEmoji方法（pr#373@Github）
+* 【core】            Convert.toDBC()增加空校验（issue#369@Github）
+
+### Bug修复
+* 【core】           修复NumberUtil.decimalFormatMoney只有整数的bug（issue#IWKVL@Gitee）
+* 【bloomFilter】 修复BitMapBloomFilter构造数bug（issue#IWMIN@Gitee）
+* 【extra】           MailUtil.send方法传入自定义Setting失效问题（感谢@【上海】康）
+* 【core】           修复NetUtil.localIpv4s方法名，改为localIps（issue#IWS2C@Gitee）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.10
+
+### 新特性
+* 【extra】         修改MailUtil中的逻辑，默认为非单例邮件客户端（issue#IWFRQ@Gitee）
+
+### Bug修复
+* 【http】          修复HttpUtil.toParams方法某些符号未转义问题（issue#356@Github）
+* 【captcha】    修复验证码被遮挡问题（issue#IWERW@Gitee）
+* 【poi】           修复readBySax重复问题（issue#IVKLQ@Gitee）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.9
+
+### 新特性
+* 【core】          修改Singleton单例策略，IdUtil增加getSnowflake（issue#IWA0G@Gitee）
+* 【core】          增加RandomUtil.randomBoolean（issue#351@Github）
+* 【core】          增加Base62实现，Base62类
+
+### Bug修复
+* 【json】          修复JSON中含有日期导致的时间戳包含双引号问题
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.8
+
+### 新特性
+* 【cron】          CronPatternUtil增加nextDateAfter方法（issue#IVYNL@Github）
+* 【core】          增加RandomUtil.randomDate方法（issue#IW49T@Github）
+* 【db】             Table增加comment字段，调整元信息逻辑（issue#IW49S@Gitee）
+* 【core】          增加ConcurrencyTester（pr#41@Gitee）
+* 【core】          ZipUtil增加对流的解压支持（issue#IW798@Gitee）
+
+### Bug修复
+* 【core】          修复Enjoy模板创建多个引擎报错问题（issue#344@Github）
+* 【crypto】       修复Linux下RSA/ECB/PKCS1Padding算法无效问题
+* 【core】          修复ImgUtil.scale方法操作png图片透明失效问题（issue#341@Github）
+* 【core】          修复JSON自定义日期格式无引号问题（issue#IW4F6@Gitee）
+* 【core】          修复Android下CallerUtil.getCallerCaller空指针问题（issue#IW68U@Gitee）
+* 【cache】        修复Cache中超时太大导致Long越界问题（issue#347@Github）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.7
+
+### 新特性
+* 【core】          新增StrClipboardListener（issue#325@Github）
+* 【core】          新增DesktopUtil（issue#326@Github）
+* 【core】          CollUtil.getFieldValues增加可选是否忽略null值（issue#IVGEE@Gitee）
+* 【http】          新增SoapUtil，SoapClient支持返回SOAPMessage
+* 【core】         RobotUtil增加鼠标相关操作
+* 【core】         增加DateModifier，DateUtil增加truncate和ceiling方法（issue#IVL9A@Gitee）
+* 【core】         PageUtil增加getStart（issue#IVN0C@Gitee）
+* 【core】         CopyOptions增加ignoreXXX方法（感谢@【南昌】...）
+* 【core】         ObjectUtil增加isEmpty方法（感谢@【成都】AliK）
+
+### Bug修复
+* 【core】          修复PatternPool中的URL_HTTP不支持端口的问题（issue#IVF1V@Gitee）
+* 【extra】         修复JschUtil.exec多次connect的问题（issue#339@Github）
+* 【http】          修复SoapUtil.toString乱码问题（pr#337@Github）
+* 【http】          解决Cookie不规范导致的请求响应失败问题（issue#336@Github）
+* 【setting】      GroupedMap增加读写锁解决并发问题（issue#336@Github）
+* 【json】          修复JSONArray中add方法导致覆盖问题（感谢@【江门】小草哥）
+* 【core】         修复Convert对泛型支持不完善的问题（issue#IVMD5@Gitee）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.6
+
+### 新特性
+* 【http】           SoapClient增加setParams，增加构造使用默认的namespaceURI方法
+* 【core】          FileUtil增加cleanEmpty方法（issue#319@Github）
+* 【core】          增加ClipboardMonitor（issue#320@Github）
+* 【http】          SoapClient增加部分方法
+* 【http】          HttpRequest增加setConnectionTimeout和setReadTimeout（issue#322@Github）
+* 【core】         Console增printPrograss
+* 【core】         DateBetween增加null校验（issue#IVC23@Gitee）
+* 【core】         增加CollUtil.getFieldValues重载（issue#IV96S@Gitee）
+* 【db】           SqlExecutor和Db增加executeBatch重载，支持批量SQL（issue#324@Github）
+
+### Bug修复
+* 【bloomFilter】修复负数导致的问题（issue#IV6X6@Gitee）
+* 【setting】       修复Props监听问题
+* 【json】           修复TypeUtil中空指针导致的注入失败问题（issue#IVCLW@Gitee）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.5
+
+### 新特性
+
+### Bug修复
+* 【core】     Assert中NullPointerException改为IllegalArgumentException（issue#IV41L@Gitee）
+* 【core】     修复创建新sheet时比较器未清空导致的顺序问题（issue#318@Github）
+
+-------------------------------------------------------------------------------------------------------------
+
+## 4.5.4
+
+### 新特性
+* 【core】     NetUtil增加getUsableLocalPort方法，并迁移至cn.hutool.core.net包
+* 【core】     FileUtil增加isSub方法（pr#39@Gitee）
+* 【core】     增加VoidFunc
+* 【extra】     mail适配mail.setting和config/mail.setting双配置文件（感谢@【江门】小草哥）
+* 【corn】     cron适配cron.setting和config/cron.setting双配置文件（感谢@【江门】小草哥）
+* 【poi】       ExcelWriter增加autoSizeColumnAll方法，ExcelBase增加getColumnCount、getRowCount方法（感谢@@【长沙】M）
+* 【http】      添加SoapClient，删除SoapRequest
+
+### Bug修复
+* 【db】        修复Session中事务问题（issue#IUQMN@Gitee）
+* 【db】        修复Db中关闭逻辑错误导致的事务问题（感谢@【宁波】mojie126）
+* 【http】      修复form方法使用Resource可能导致的空指针问题
+* 【crypto】   修复SM2Engine逻辑错误（感谢bcgit/bc-java）
+
+-------------------------------------------------------------------------------------------------------------
+
 ## 4.5.3
 
 ### 新特性
@@ -11,10 +278,12 @@
 * 【extra】      二维码中的图片做圆角处理
 * 【core】       CsvData实现Iterable接口
 * 【extra】      Ftp增加重连方法（pr#38@Gitee）
+* 【extra】      Velocity升级至2.x，不再兼容1.7
 
 ### Bug修复
 * 【core】       修复ReflectUtil新建Map对象错误问题（issue#IUF9O@Gitee）
 * 【core】       修复ImgUtil字体为null导致的空指针问题（issue#IUF3X@Gitee）
+* 【extra】      修复Ftp中文件上传mkdirs方法创建多余文件夹的问题（issue#ITAYV@Gitee）
 * 【extra】      修复Ftp中文件上传mkdirs方法创建多余文件夹的问题（issue#ITAYV@Gitee）
 
 -------------------------------------------------------------------------------------------------------------

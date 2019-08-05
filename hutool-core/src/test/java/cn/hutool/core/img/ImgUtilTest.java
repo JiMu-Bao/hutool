@@ -2,6 +2,7 @@ package cn.hutool.core.img;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -18,13 +19,19 @@ public class ImgUtilTest {
 	@Test
 	@Ignore
 	public void scaleTest() {
-		ImgUtil.scale(FileUtil.file("d:/face.jpg"), FileUtil.file("d:/face_result.jpg"), 0.5f);
+		ImgUtil.scale(FileUtil.file("e:/pic/test.jpg"), FileUtil.file("e:/pic/test_result.jpg"), 0.8f);
+	}
+	
+	@Test
+	@Ignore
+	public void scalePngTest() {
+		ImgUtil.scale(FileUtil.file("f:/test/test.png"), FileUtil.file("f:/test/test_result.png"), 0.5f);
 	}
 
 	@Test
 	@Ignore
 	public void scaleByWidthAndHeightTest() {
-		ImgUtil.scale(FileUtil.file("d:/face.jpg"), FileUtil.file("d:/face_result.jpg"), 100, 800, Color.BLUE);
+		ImgUtil.scale(FileUtil.file("f:/test/aaa.jpg"), FileUtil.file("f:/test/aaa_result.jpg"), 100, 400, Color.BLUE);
 	}
 
 	@Test
@@ -36,7 +43,7 @@ public class ImgUtilTest {
 	@Test
 	@Ignore
 	public void rotateTest() throws IOException {
-		BufferedImage image = ImgUtil.rotate(ImageIO.read(FileUtil.file("e:/pic/366466.jpg")), 180);
+		Image image = ImgUtil.rotate(ImageIO.read(FileUtil.file("e:/pic/366466.jpg")), 180);
 		ImgUtil.write(image, FileUtil.file("e:/pic/result.png"));
 	}
 
@@ -68,7 +75,7 @@ public class ImgUtilTest {
 	@Test
 	@Ignore
 	public void sliceByRowsAndColsTest() {
-		ImgUtil.sliceByRowsAndCols(FileUtil.file("d:/picTest/1.jpg"), FileUtil.file("d:/picTest/dest"), 5, 5);
+		ImgUtil.sliceByRowsAndCols(FileUtil.file("e:/pic/1.png"), FileUtil.file("e:/pic/dest"), 10, 10);
 	}
 	
 	@Test
@@ -87,5 +94,12 @@ public class ImgUtilTest {
 	@Ignore
 	public void compressTest() {
 		ImgUtil.compress(FileUtil.file("e:/pic/1111.png"), FileUtil.file("e:/pic/1111_target.jpg"), 0.8f);
+	}
+	
+	@Test
+	@Ignore
+	public void copyTest() {
+		BufferedImage image = ImgUtil.copyImage(ImgUtil.read("f:/pic/test.png"), BufferedImage.TYPE_INT_RGB);
+		ImgUtil.write(image, FileUtil.file("f:/pic/test_dest.jpg"));
 	}
 }
